@@ -1,10 +1,11 @@
 import math
 import matplotlib.pyplot as plt
 import numpy
+import LinearEquations
 
 
 # Аппроксимация y(x) = a*(e^(b*x))
-def approximate(nodes_x, nodes_y, x):
+def approximate(nodes_x, nodes_y):
     # Выбрать наименьший положительный и неположительный y (для смещения)
     min_pos_y = min([element for element in nodes_y if element > 0])
     min_neg_y = min([element for element in nodes_y if element <= 0])
@@ -29,9 +30,31 @@ def approximate(nodes_x, nodes_y, x):
 
         vector_b[0] += math.log(nodes_y[i])  # ln(y)
         vector_b[1] += math.log(nodes_y[i]) * nodes_x[i]  # ln(y)*x
-    print(matrix_a)
-    print(vector_b)
 
+    soluton = LinearEquations.linearsolver(matrix_a, vector_b)
+
+    # Вычисление значения полинома в точках интерполяции
+    t = 0.001  # Отступ при вычислении новой точки
+    InterpolationX = []
+    InterpolationY = []
+    for x in numpy.arange(NodesX[0], NodesX[-1], t):
+        InterpolationX.append(x)
+        InterpolationY.append(math.exp(soluton[0]) * (math.exp(soluton[1]*x)) - abs(min_neg_y + 0.1)) # e^a * bx
+
+    # График в matplotlib
+    fig = plt.figure()
+    # Описания к графику
+    plt.title('Newton-1 Interpolation')
+    plt.xlabel('x')
+    plt.ylabel('F(x)')
+    # Построение точечного графика
+    plt.scatter(NodesX, NodesY, color='red')
+    # Построение графика интерполяции
+    plt.plot(InterpolationX, InterpolationY)
+    # Вывод графика в IDE
+    plt.show()
+    # Сохранение в png
+    fig.savefig('NewtonInterpolation.png')
 
 # Загрузка узловых точек из файла
 f = open('nodes.in')
@@ -41,13 +64,4 @@ for line in f:
     NodesX.append(float(line.rstrip('\n').split(' ')[0]))
     NodesY.append(float(line.rstrip('\n').split(' ')[1]))
 
-approximate(NodesX, NodesY, 3)
-
-# Вычисление значения полинома в точках интерполяции
-t = 0.001  # Отступ при вычислении новой точки
-InterpolationX = []
-InterpolationY = []
-for f in numpy.arange(NodesX[0], NodesX[-1], t):
-    InterpolationX.append(f)
-    #InterpolationY.append(approximate(NodesX, NodesY, f))
-
+approximate(NodesX, NodesY)
